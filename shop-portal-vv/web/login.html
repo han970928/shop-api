@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="/jsp/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/jsp/DataTables/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" href="/jsp/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="/jsp/bootstrap-select/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="/jsp/zTree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="/jsp/bootstrapvalidator/css/bootstrapValidator.min.css"/>
+    <link rel="stylesheet" href="/jsp/fileinput5/css/fileinput.css" media="all" type="text/css" />
+    <title>Title</title>
+</head>
+<body>
+<!--导航条 -->
+<div id="navId"></div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="page-header">
+                <h2>新增账户信息</h2>
+            </div>
+            <form id="resultFrom" method="post" class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">账户名称</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="userName"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">密码</label>
+                    <div class="col-sm-5">
+                        <input type="password" class="form-control" id="password"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">确定密码</label>
+                    <div class="col-sm-5">
+                        <input type="password" class="form-control" id="confirmPassword"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">真实姓名</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="realName"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">邮箱</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="email"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">日期</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="birthday"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">手机号</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="phone"/>
+                        <input type="button" class="btn btn-info" value="发送验证码" onclick="res_smsCode()"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">验证码</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="smsCode"/>
+                    </div>
+                </div>
+                <div class="form-group" id="areaDiv">
+                    <label  class="col-sm-3 control-label" >地区</label>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <button type="button" class="btn btn-default" onclick="add()">注册会员</button>
+                        <button type="reset" class="btn btn-default">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/jsp/jquery-3.3.1.js"></script>
+<script src="/jsp/nav.js"></script>
+<script src="/jsp/jquery.cookie.min.js"></script>
+<script src="/jsp/DataTables/js/jquery.dataTables.min.js"></script>
+<script src="/jsp/DataTables/js/dataTables.bootstrap.min.js"></script>
+<script src="/jsp/bootstrap/js/bootstrap.min.js"></script>
+<script src="/jsp/bootbox/bootbox.min.js"></script>
+<script src="/jsp/bootbox/bootbox.locales.min.js"></script>
+<script src="/jsp/bootstrap-datetimepicker/js/moment-with-locales.js"></script>
+<script src="/jsp/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script src="/jsp/bootstrap-select/js/bootstrap-select.js"></script>
+<script src="/jsp/zTree/js/jquery.ztree.core.min.js"></script>
+<script src="/jsp/zTree/js/jquery.ztree.excheck.min.js"></script>
+<script src="/jsp/bootstrapvalidator/js/bootstrapValidator.min.js"></script>
+<script src="/jsp/fileinput5/js/fileinput.js"></script>
+<script>
+    $(function() {
+        queryArea(0);
+        initDate();
+    });
+    function initDate(){
+        $("#birthday").datetimepicker({
+            format: 'YYYY-MM-DD',
+            locale: moment.locale('zh-CN'),
+            showClear:true,
+        });
+    }
+    //验证码
+    function res_smsCode(){
+        var v_phone = $("#phone").val();
+        $.ajax({
+            type:"get",
+            url:"http://localhost:8082/vips.jhtml",
+            data:{"phone":v_phone},
+            success:function(result){
+                if(result.code==200){
+                    alert("发送成功");
+                }else{
+                    alert("失败："+result.msg);
+                }
+            }
+        })
+    }
+    function add() {
+      var v_userName = $("#userName").val();
+      var v_password = $("#password").val();
+      var v_realName = $("#realName").val();
+      var v_birthday = $("#birthday").val();
+      var v_phone = $("#phone").val();
+      var v_email = $("#email").val();
+      var v_smsCode = $("#smsCode").val();
+      var v_areaId1= $($("select[name='areaName']")[0]).val();
+      var v_areaId2= $($("select[name='areaName']")[1]).val();
+      var v_areaId3= $($("select[name='areaName']")[2]).val();
+      var param={};
+        param.userName=v_userName;
+        param.password=v_password;
+        param.realName=v_realName;
+        param.birthday=v_birthday;
+        param.email=v_email;
+        param.phone=v_phone;
+        param.smsCode=v_smsCode;
+        param.areaId1=v_areaId1;
+        param.areaId2=v_areaId2;
+        param.areaId3=v_areaId3;
+        $.ajax({
+            type:"post",
+            url:"http://localhost:8082/vips.jhtml",
+            data:param,
+            success:function(result){
+                if(result.code==200){
+                    alert("注册成功");
+                }else{
+                    alert("失败："+result.msg);
+                }
+            }
+        })
+    }
+    function queryArea(id,obj){
+        if(obj){
+            $(obj).parent().nextAll().remove();
+        }
+        $.ajax({
+            type:"get",
+            url:"http://localhost:8082/areas/queryArea.jhtml?id="+id,
+            success:function(result){
+                if(result.code==200){
+                    var v_areaList = result.data;
+                    if(v_areaList.length==0){
+                        return;
+                    }
+                    var kong="<div class='col-sm-3'>" +
+                        "<select class='form-control' name='areaName' onchange='queryArea(this.value,this)'>" +
+                        "<option value='-1'>请选择</option>"
+                    for(var i=0;i<v_areaList.length;i++){
+                        kong+="<option value='"+v_areaList[i].id+"'>"+v_areaList[i].areaName+"</option>";
+                    }
+                    $("#areaDiv").append(kong);
+                }
+            },
+        })
+    }
+</script>
+</body>
+</html>

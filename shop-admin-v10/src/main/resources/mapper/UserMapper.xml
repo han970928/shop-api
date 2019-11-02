@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.shop.admin.mapper.user.IUserMapper">
+    <sql id="search">
+        <where>
+            <if test="userName!=null and userName!='' ">
+                userName like concat ('%',#{userName},'%')
+            </if>
+            <if test="roleName!=null and roleName!='' ">
+            and  roleName like concat ('%',#{roleName},'%')
+            </if>
+            <if test="minAge !=null and minAge >= 0">
+            and age >=#{minAge}
+            </if>
+            <if test="maxAge !=null and maxAge >=minAge">
+            and age &lt;#{maxAge}
+            </if>
+            <if test="mincompensation !=null and mincompensation>=0">
+            and compensation >=#{mincompensation}
+            </if>
+            <if test="maxcompensation !=null and maxcompensation>=mincompensation">
+            and compensation &lt;#{maxcompensation}
+            </if>
+            <if test="minhiredate !=null">
+            and hiredate >=#{minhiredate}
+            </if>
+            <if test="maxhiredate !=null and maxhiredate>=minhiredate">
+            and hiredate &lt;=#{maxhiredate}
+            </if>
+            <if test="roleSize > 0">
+            and id in
+                (select userId from t_user_role ur where ur.roleId in
+            <foreach item="roles" collection="roleList" open="(" close=")" separator="," >
+                #{roles}
+            </foreach>
+                group by  ur.userId having count(*) = #{roleSize}
+             )
+            </if>
+            <if test="areaId1 !=null and areaId1>0">
+                and areaId1 =#{areaId1}
+            </if>
+            <if test="areaId2 !=null and areaId2>0">
+                and areaId2 =#{areaId2}
+            </if>
+            <if test="areaId3 !=null and areaId3>0">
+                and areaId3 =#{areaId3}
+            </if>
+        </where>
+    </sql>
+    <delete id="delAll">
+        delete from t_user where id in
+        <foreach collection="list" open="(" close=")" separator="," item="s">
+            #{s}
+        </foreach>
+    </delete>
+    <select id="queryUserCount" resultType="Integer" parameterType="com.fh.shop.admin.param.user.UserSearch">
+        select count(*) from t_user
+        <include refid="search"></include>
+    </select>
+    <select id="queryUserList" resultType="com.fh.shop.admin.po.user.UserPo" parameterType="com.fh.shop.admin.param.user.UserSearch">
+       select t.* from
+       (select t.id,userName,roleName,age,email,sex,phone,hiredate,tocount,compensation,loginDate,errorCount,imgFilePath,salt,
+        concat(a1.areaName,'-->',a2.areaName,'-->',a3.areaName) areaName from t_user t
+        left join t_area a1  on t.areaId1=a1.id
+        left join t_area a2  on t.areaId2=a2.id
+        left join t_area a3  on t.areaId3=a3.id
+          <include refid="search"></include>
+        order by t.id desc ) t
+       limit  #{start},#{length}
+    </select>
+    <insert id="add" parameterType="com.fh.shop.admin.po.user.UserPo">
+        <selectKey keyProperty="id" resultType="Long" order="AFTER">
+            select last_insert_id();
+        </selectKey>
+       insert into t_user (userName,roleName,password,age,email,sex,phone,compensation,hiredate,salt,imgFilePath,areaId1,areaId2,areaId3)
+       values (#{userName},#{roleName},#{password},#{age},#{email},#{sex},#{phone},#{compensation},#{hiredate},#{salt},#{imgFilePath},#{areaId1},#{areaId2},#{areaId3})
+    </insert>
+    <delete id="del" parameterType="long">
+        delete from t_user where id=#{id}
+    </delete>
+    <select id="toupdate" parameterType="long" resultType="com.fh.shop.admin.po.user.UserPo">
+        select t.id,userName,roleName,password,age,email,sex,phone,compensation,hiredate,imgFilePath,salt,
+            concat(a1.areaName,'-->',a2.areaName,'-->',a3.areaName) areaName from t_user t
+            left join t_area a1  on t.areaId1=a1.id
+            left join t_area a2  on t.areaId2=a2.id
+            left join t_area a3  on t.areaId3=a3.id
+              where t.id=#{id}
+    </select>
+    <update id="update" parameterType="com.fh.shop.admin.po.user.UserPo">
+        update t_user
+        <set>
+        userName=#{userName},roleName=#{roleName},password=#{password},
+        age=#{age},email=#{email},sex=#{sex},phone=#{phone},compensation=#{compensation},
+        hiredate=#{hiredate},salt=#{salt},imgFilePath=#{imgFilePath},
+          <if test="areaId1 !=null and areaId1!=''">
+              areaId1=#{areaId1},
+          </if>
+          <if test="areaId2 !=null and areaId2!=''">
+              areaId2=#{areaId2},
+          </if>
+          <if test="areaId1 !=null and areaId3!=''">
+              areaId3=#{areaId3}
+          </if>
+        </set>
+        where id=#{id}
+    </update>
+    <insert id="addUserRole" parameterType="com.fh.shop.admin.po.user.UserRole">
+        insert into t_user_role (roleId,userId) values (#{roleId},#{userId})
+    </insert>
+    <select id="queryUserRoleName" parameterType="long" resultType="String">
+        select roleName from t_user_role ur left join t_role r on ur.roleId =r.id where ur.userId=#{value}
+    </select>
+    <select id="queryUserRoleIds" parameterType="long" resultType="Integer">
+        select roleId from  t_user_role where userId=#{value}
+    </select>
+    <delete id="delete" parameterType="long">
+        delete from t_user_role where userId=#{value}
+    </delete>
+    <delete id="delUserRole">
+        delete from t_user_role where userId in
+        <foreach collection="list" open="(" close=")" separator="," item="s">
+            #{s}
+        </foreach>
+    </delete>
+    <select id="queryUserByName" resultType="com.fh.shop.admin.po.user.UserPo" parameterType="String">
+      select id,userName,roleName,password,age,email,sex,phone,compensation,
+      hiredate,tocount,loginDate,errorCount,errorDate,salt,imgFilePath from t_user where userName=#{userName}
+    </select>
+    <select id="queryUserExcel" parameterType="com.fh.shop.admin.param.user.UserSearch" resultType="com.fh.shop.admin.po.user.UserPo">
+        select t.id,userName,roleName,age,email,sex,phone,hiredate,compensation,
+        concat(a1.areaName,'-->',a2.areaName,'-->',a3.areaName) areaName from t_user t
+        left join t_area a1  on t.areaId1=a1.id
+        left join t_area a2  on t.areaId2=a2.id
+        left join t_area a3  on t.areaId3=a3.id
+        <include refid="search"></include>
+        order by t.id desc
+    </select>
+    <update id="updateLoginDate">
+        update t_user set loginDate=#{data} where id=#{id}
+    </update>
+    <update id="updateTocount" parameterType="long">
+        update t_user set tocount=tocount+1 where id=#{value}
+    </update>
+    <update id="initCount" parameterType="long">
+        update t_user set tocount=1 where id=#{value}
+    </update>
+    <update id="updateErrorDateAndErrorCount">
+         update t_user set errorDate=#{date},errorCount=errorCount+1 where id=#{id}
+    </update>
+    <update id="initerrorCount" parameterType="long">
+        update t_user set errorCount=0 where id=#{id}
+    </update>
+    <update id="updateErrorCount">
+        update t_user set errorDate=#{date},errorCount=1 where id=#{id}
+    </update>
+    <update id="updatePassword" parameterType="com.fh.shop.admin.param.user.UserPassword">
+        update t_user set password=#{newPassword} where id=#{userId}
+    </update>
+    <update id="resetPassword">
+         update t_user set password=#{password} where id=#{id}
+    </update>
+    <select id="forGetPassword" parameterType="string" resultType="com.fh.shop.admin.po.user.UserPo">
+        select id,userName,roleName,password,age,email,sex,phone,compensation,
+      hiredate,tocount,loginDate,errorCount,errorDate,salt,imgFilePath from t_user where email=#{email}
+    </select>
+</mapper>

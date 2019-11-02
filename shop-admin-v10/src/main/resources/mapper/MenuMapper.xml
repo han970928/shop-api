@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.shop.admin.mapper.menu.IMenuMapper">
+    <select id="queryMenuList" resultType="com.fh.shop.admin.po.menu.Menu" >
+        select id,menuName,fatherId,menuType,menuUrl from t_menu
+    </select>
+    <insert id="add" parameterType="com.fh.shop.admin.po.menu.Menu">
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select last_insert_id();
+        </selectKey>
+        insert into t_menu (menuName,fatherId,menuType,menuUrl) values (#{menuName},#{fatherId},#{menuType},#{menuUrl})
+    </insert>
+    <update id="update"  parameterType="com.fh.shop.admin.po.menu.Menu">
+        update t_menu set menuName=#{menuName},menuType=#{menuType},menuUrl=#{menuUrl} where id=#{id}
+    </update>
+    <delete id="delAll">
+        delete from t_menu where id in
+        <foreach collection="list" item="ids" open="(" close=")" separator=",">
+            #{ids}
+        </foreach>
+    </delete>
+    <select id="queryMenuListByUserId" parameterType="long" resultType="com.fh.shop.admin.po.menu.Menu">
+         select m.*
+            from   t_user_role ur
+            left join  t_role_menu rm on rm.roleId=ur.roleId
+            left join  t_menu m on rm.menuId=m.id where m.menuType=1  and ur.userId=#{value}
+    </select>
+    <select id="queryUserMenuList" parameterType="long" resultType="com.fh.shop.admin.po.menu.Menu">
+         select m.*
+            from   t_user_role ur
+            left join  t_role_menu rm on rm.roleId=ur.roleId
+            left join  t_menu m on rm.menuId=m.id where  ur.userId=#{value}
+    </select>
+</mapper>

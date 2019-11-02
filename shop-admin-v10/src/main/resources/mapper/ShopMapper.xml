@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.shop.admin.mapper.shop.IShopMapper">
+    <sql id="search">
+        <where>
+            <if test="shopName!=null and shopName!='' ">
+                shopName like concat ('%',#{shopName},'%')
+            </if>
+            <if test="minPrice !=null and minPrice >= 0">
+                and price >=#{minPrice}
+            </if>
+            <if test="maxPrice !=null and maxPrice >=minPrice">
+                and price &lt;#{maxPrice}
+            </if>
+            <if test="minDate !=null">
+                and productiveTime >=#{minDate}
+            </if>
+            <if test="maxDate !=null and maxDate>=minDate">
+                and productiveTime &lt;=#{maxDate}
+            </if>
+            <if test="shopId !=null and shopId>0">
+                and brandId =#{shopId}
+            </if>
+            <if test="classifyId1 !=null and classifyId1>0">
+                and classifyId1 =#{classifyId1}
+            </if>
+            <if test="classifyId2 !=null and classifyId2>0">
+                and classifyId2 =#{classifyId2}
+            </if>
+            <if test="classifyId3 !=null and classifyId3>0">
+                and classifyId3 =#{classifyId3}
+            </if>
+        </where>
+    </sql>
+    <select id="queryShopCount" resultType="int" parameterType="com.fh.shop.admin.param.shop.ShopSearch">
+        select count(*) from t_shop s left join t_brand  b on s.brandId=b.id
+        <include refid="search"></include>
+    </select>
+    <select id="queryShopList" resultType="com.fh.shop.admin.po.shop.Shop" parameterType="com.fh.shop.admin.param.shop.ShopSearch">
+        select a.* from
+           (select s.id,shopName,price,productiveTime,stock,isHot,s.imgPath,isShelf,b.brandName "brandName",
+        concat(c1.classifyName,"-->",c2.classifyName,"-->",c3.classifyName) classifyName
+        from t_shop s
+        left join t_brand  b on s.brandId=b.id
+        left join t_classify c1 on s.classifyId1=c1.id
+        left join t_classify c2 on s.classifyId2=c2.id
+        left join t_classify c3 on s.classifyId3=c3.id
+        <include refid="search"></include>
+           order by s.id desc ) a
+         limit #{start},#{length}
+    </select>
+    <insert id="add" parameterType="com.fh.shop.admin.po.shop.Shop">
+        insert into t_shop (shopName,price,productiveTime,stock,isHot,isShelf,brandId,imgPath,classifyId1,classifyId2,classifyId3)
+        values (#{shopName},#{price},#{productiveTime},#{stock},#{isHot},#{isShelf},#{brandId},#{imgPath},#{classifyId1},#{classifyId2},#{classifyId3})
+    </insert>
+    <delete id="del" parameterType="Long">
+        delete from t_shop where id=#{value}
+    </delete>
+    <select id="toupdate" parameterType="Long" resultType="com.fh.shop.admin.po.shop.Shop">
+        select s.id,shopName,price,productiveTime,stock,isHot,isShelf,brandId,imgPath,
+        concat(c1.classifyName,"-->",c2.classifyName,"-->",c3.classifyName) classifyName
+        from t_shop s
+	    left join t_classify c1 on s.classifyId1=c1.id
+        left join t_classify c2 on s.classifyId2=c2.id
+        left join t_classify c3 on s.classifyId3=c3.id
+        where s.id=#{value}
+    </select>
+    <update id="update" parameterType="com.fh.shop.admin.po.shop.Shop">
+        update t_shop
+        <set>
+            shopName=#{shopName},price=#{price},productiveTime=#{productiveTime},
+            stock=#{stock},isHot=#{isHot},isShelf=#{isShelf},brandId=#{brandId},imgPath=#{imgPath},
+        <if test="classifyId1 !=null and classifyId1 !='' ">
+            classifyId1 = #{classifyId1},
+        </if>
+        <if test="classifyId2 !=null and classifyId2 !='' ">
+            classifyId2 = #{classifyId2},
+        </if>
+        <if test="classifyId3 !=null and classifyId3 !='' ">
+            classifyId3 = #{classifyId3}
+        </if>
+        </set>
+         where id=#{id}
+    </update>
+    <select id="findShopList" resultType="com.fh.shop.admin.po.shop.Shop" parameterType="com.fh.shop.admin.param.shop.ShopSearch">
+        select s.id,shopName,price,productiveTime,stock,isHot,s.imgPath,isShelf,b.brandName "brandName",
+        concat(c1.classifyName,"-->",c2.classifyName,"-->",c3.classifyName) classifyName
+        from t_shop s
+        left join t_brand  b on s.brandId=b.id
+        left join t_classify c1 on s.classifyId1=c1.id
+        left join t_classify c2 on s.classifyId2=c2.id
+        left join t_classify c3 on s.classifyId3=c3.id
+        <include refid="search"></include>
+        order by s.id desc
+    </select>
+</mapper>

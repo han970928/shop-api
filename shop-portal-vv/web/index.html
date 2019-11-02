@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="/jsp/DataTables/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" href="/jsp/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/jsp/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css"/>
+    <link rel="stylesheet" href="/jsp/fileinput5/css/fileinput.css"/>
+    <link rel="icon" href="/jsp/shop/assets/img/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/jsp/shop/css/webbase.css" />
+    <link rel="stylesheet" type="text/css" href="/jsp/shop/css/pages-JD-index.css" />
+    <link rel="stylesheet" type="text/css" href="/jsp/shop/css/widget-jquery.autocomplete.css" />
+    <link rel="stylesheet" type="text/css" href="/jsp/shop/css/widget-cartPanelView.css" />
+    <title>商城首页</title>
+</head>
+<body>
+<!--导航条 -->
+<div id="navId"></div>
+
+
+
+<!--列表-->
+<div  id="nav-bottom">
+    <!--顶部-->
+    <div class="nav-top" >
+        <!--头部-->
+        <div class="header"  >
+            <div class="py-container" >
+                <div class="yui3-g NavList" >
+                    <div class="yui3-u Left all-sort" >
+                        <h4>全部商品分类</h4>
+                    </div>
+                    <div class="yui3-u Center navArea">
+                        <ul class="nav">
+                            <li class="f-item">服装城</li>
+                            <li class="f-item">美妆馆</li>
+                            <li class="f-item">品优超市</li>
+                            <li class="f-item">全球购</li>
+                            <li class="f-item">闪购</li>
+                            <li class="f-item">团购</li>
+                            <li class="f-item">有趣</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="sort">
+    <div class="py-container">
+        <div class="yui3-g SortList ">
+            <div class="yui3-u Left all-sort-list">
+                <div class="all-sort-list2" id="cateListDiv">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!--商品-->
+<div class="container">
+    <div class="row" >
+        <div class="col-md-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">热销品牌</div>
+                <div class="panel-body" id="brandListId">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" >
+        <div class="col-md-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">商品列表</div>
+                <div class="panel-body" id="shopListId">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div  id="brandTableId"  style="display: none">
+        <div class="col-sm-6 col-md-4" >
+            <div class="thumbnail">
+                <div class="caption">
+                    <h3>品牌名称：##brandName##</h3>
+                    <img src="##imgPaths##" >
+                </div>
+            </div>
+        </div>
+</div>
+<div  id="shopTableId"  style="display: none">
+        <div class="col-sm-6 col-md-4" >
+            <div class="thumbnail">
+                <div class="caption">
+                    <img src="http://localhost:8084##img##" >
+                    <h3>商品名称：##shopName##</h3>
+                    <p>商品价格：##price##</p>
+                    <p>
+                        <a href="/cart-student.html" class="btn btn-primary" role="button" onclick="byShop('##shopId##',1,'add')">购买</a>
+                        <a href="#" class="btn btn-default" role="button">收藏</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+</div>
+
+
+
+
+<script src="/jsp/jquery-3.3.1.js"></script>
+<script src="/jsp/nav.js"></script>
+<script src="/jsp/jquery.cookie.min.js"></script>
+<script src="/jsp/DataTables/js/jquery.dataTables.min.js"></script>
+<script src="/jsp/DataTables/js/dataTables.bootstrap.min.js"></script>
+<script src="/jsp/bootstrap/js/bootstrap.min.js"></script>
+<script src="/jsp/bootbox/bootbox.min.js"></script>
+<script src="/jsp/bootbox/bootbox.locales.min.js"></script>
+<script src="/jsp/bootstrap-datetimepicker/js/moment-with-locales.js"></script>
+<script src="/jsp/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script src="/jsp/fileinput5/js/fileinput.js"></script>
+<script src="/jsp/fileinput5/js/locales/zh.js"></script>
+<script src="/jsp/bootstrap-select/js/bootstrap-select.js"></script>
+<script src="/jsp/bootstrap-select/js/i18n/defaults-zh_CN.js"></script>
+<script src="/jsp/zTree/js/jquery.ztree.all.min.js"></script>
+<script>
+    $(function(){
+        initList();
+        initBrandList();
+        getClassList();
+    })
+    function getClassList(){
+        $.ajax({
+            url:"http://localhost:8082/classify.jhtml",
+            type:"GET",
+            success:function(result){
+                if(result.code == 200){
+                    var v_dataArr = result.data;
+                    var v_html = "";
+                    for(var i = 0 ; i < v_dataArr.length ; i ++){
+                        if(v_dataArr[i].pid ==0 ){
+                            v_html += '<div class="item">' +
+                                '<h3><a href="#">'+v_dataArr[i].classifyName+'</a></h3>';
+                            v_html += '<div class="item-list clearfix">\n' +
+                                '<div class="subitem">';
+                            for(var j = 0; j < v_dataArr.length ; j++){
+                                if(v_dataArr[j].pid == v_dataArr[i].id){
+                                    var count = 0;
+                                    v_html += ' <dl class="fore'+(count+1)+'"><dt><a href="#">'+v_dataArr[j].classifyName+'</a></dt><dd>';
+                                    for(var h =0 ; h < v_dataArr.length; h++){
+                                        if(v_dataArr[h].pid == v_dataArr[j].id){
+                                            v_html +='<em><a href="#">'+v_dataArr[h].classifyName+'</a></em>';
+                                        }
+                                    }
+                                    v_html +='</dd></dl>';
+                                }
+                            }
+                            v_html +='</div></div></div>'
+                        }
+                    }
+                    $("#cateListDiv").html(v_html);
+                    initCss();
+                }
+            }
+        })
+    }
+    function initCss() {
+        $('.all-sort-list2 > .item').hover(function() {
+            //父类分类列表容器的高度
+            $(this).addClass('hover');
+            $(this).children('.item-list').css('display', 'block');
+        }, function() {
+            $(this).removeClass('hover');
+            $(this).children('.item-list').css('display', 'none');
+        });
+        $('.item > .item-list > .close').click(function() {
+            $(this).parent().parent().removeClass('hover');
+            $(this).parent().hide();
+        });
+    }
+
+
+    function initBrandList(){
+        $.post({
+            url:"http://localhost:8082/brand/queryBrandList.jhtml",
+            success:function(result){
+                if(result.code==200){
+                    var list=result.data;
+                    var brandTable=$("#brandTableId").html();
+                    for(var i=0;i<list.length;i++){
+                        var brand=list[i];
+                        var temp =brandTable.replace(/##brandName##/g,brand.brandName)
+                            .replace(/##imgPaths##/g,brand.imgPath);
+                        $("#brandListId").append(temp);
+                    }
+                }
+            }
+        })
+    }
+    function initList(){
+        $.post({
+            url:"http://localhost:8082/shop/queryList.jhtml",
+            success:function(result){
+                if(result.code==200){
+                    var list=result.data;
+                    var shopTable=$("#shopTableId").html();
+                    for(var i=0;i<list.length;i++){
+                        var shop=list[i];
+                        var temp =shopTable.replace(/##shopName##/g,shop.shopName)
+                            .replace(/##price##/g,shop.price)
+                            .replace(/##img##/g,shop.imgPath)
+                            .replace(/##shopId##/g,shop.id);
+                        $("#shopListId").append(temp);
+                    }
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

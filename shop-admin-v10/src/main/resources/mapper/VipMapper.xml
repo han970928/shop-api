@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.shop.admin.mapper.vip.IVipMapper">
+    <sql id="search">
+        <where>
+            <if test="userName!=null and userName!=''">
+                userName like concat ("%",#{userName},"%")
+            </if>
+            <if test="realName!=null and realName!=''">
+                and realName like concat ("%",#{realName},"%")
+            </if>
+            <if test="minBirthday !=null">
+                and birthday >=#{minBirthday}
+            </if>
+            <if test="maxBirthday !=null and maxBirthday>=minBirthday">
+                and birthday &lt;=#{maxBirthday}
+            </if>
+            <if test="areaId1 !=null and areaId1>0">
+                and areaId1 =#{areaId1}
+            </if>
+            <if test="areaId2 !=null and areaId2>0">
+                and areaId2 =#{areaId2}
+            </if>
+            <if test="areaId3 !=null and areaId3>0">
+                and areaId3 =#{areaId3}
+            </if>
+        </where>
+    </sql>
+    <select id="queryCount" resultType="int" parameterType="com.fh.shop.admin.param.vip.VipSearch">
+        select count(*) from t_vip
+        <include refid="search"></include>
+    </select>
+    <select id="queryList" resultType="com.fh.shop.admin.po.vip.Vip" parameterType="com.fh.shop.admin.param.vip.VipSearch">
+        select a.* from
+        (select v.id,userName,password,realName,phone,email,address,birthday,concat(a1.areaName,'-->',a2.areaName,'-->',a3.areaName) areaName from t_vip  v
+        left join t_area a1  on v.areaId1=a1.id
+        left join t_area a2  on v.areaId2=a2.id
+        left join t_area a3  on v.areaId3=a3.id
+        order by v.id desc) a
+        <include refid="search"></include>
+        limit #{start},#{length}
+    </select>
+</mapper>

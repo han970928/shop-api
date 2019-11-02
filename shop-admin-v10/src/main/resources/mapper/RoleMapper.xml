@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.shop.admin.mapper.role.IRoleMapper">
+    <select id="queryRoleList" resultType="com.fh.shop.admin.po.role.Role">
+        select id,roleName from t_role
+    </select>
+    <select id="queryRoleCount" resultType="int" parameterType="com.fh.shop.admin.param.role.RoleSearch">
+        select count(*) from t_role
+    </select>
+    <select id="queryRole" resultType="com.fh.shop.admin.po.role.Role" parameterType="com.fh.shop.admin.param.role.RoleSearch">
+        select a.* from
+           (select id,roleName from t_role order by id desc ) a
+         limit #{start},#{length}
+    </select>
+    <insert id="add" parameterType="com.fh.shop.admin.po.role.Role">
+      <selectKey keyProperty="id" resultType="long" order="AFTER">
+          select last_insert_id();
+      </selectKey>
+        insert into t_role (roleName) values (#{roleName})
+    </insert>
+    <delete id="del" parameterType="long">
+        delete from t_role where id=#{value}
+    </delete>
+    <select id="toupdate" resultType="com.fh.shop.admin.po.role.Role" parameterType="long">
+        select id,roleName from t_role where id=#{value}
+    </select>
+    <update id="update" parameterType="com.fh.shop.admin.po.role.Role">
+        update t_role set roleName=#{roleName} where id=#{id}
+    </update>
+    <insert id="addRoleMenu" >
+        insert into t_role_menu (roleId,menuId) values
+        <foreach collection="list" item="s" separator="," >
+            (#{s.roleId},#{s.menuId})
+        </foreach>
+    </insert>
+    <select id="queryRoleMenuList" parameterType="long" resultType="long">
+        select menuId from t_role_menu where roleId=#{value}
+    </select>
+    <delete id="deleteRoleMenu" parameterType="long">
+        delete from t_role_menu where roleId=#{value}
+    </delete>
+</mapper>

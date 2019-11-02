@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+   
+<mapper namespace="com.fh.shop.admin.mapper.brand.IBrandMapper">
+    <sql id="search">
+        <where>
+            <if test="brandName!=null and brandName!=''">
+                brandName like concat ("%",#{brandName},"%")
+            </if>
+        </where>
+    </sql>
+    <select id="queryBrandCount" resultType="int" parameterType="com.fh.shop.admin.param.brand.BrandSearch">
+        select count(*) from t_brand
+        <include refid="search"></include>
+    </select>
+    <select id="queryBrandList" resultType="com.fh.shop.admin.po.brand.Brand" parameterType="com.fh.shop.admin.param.brand.BrandSearch">
+        select a.* from
+           (select id,brandName,popular,sort,imgPath from t_brand order by popular asc,sort desc) a
+        <include refid="search"></include>
+         limit #{start},#{length}
+    </select>
+    <insert id="add" parameterType="com.fh.shop.admin.po.brand.Brand">
+        insert into t_brand (brandName,popular,imgPath) values (#{brandName},#{popular},#{imgPath})
+    </insert>
+    <delete id="del" parameterType="Long">
+        delete from t_brand where id=#{value}
+    </delete>
+    <select id="toupdate" parameterType="Long" resultType="com.fh.shop.admin.po.brand.Brand">
+        select id,brandName,popular,sort,imgPath from t_brand where id=#{value}
+    </select>
+    <update id="update" parameterType="com.fh.shop.admin.po.brand.Brand">
+        update t_brand set brandName=#{brandName},popular=#{popular},imgPath=#{imgPath} where id=#{id}
+    </update>
+    <select id="queryBrand" resultType="com.fh.shop.admin.po.brand.Brand">
+        select id,brandName from t_brand
+    </select>
+</mapper>

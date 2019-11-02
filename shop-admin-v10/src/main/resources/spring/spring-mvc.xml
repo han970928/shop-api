@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="GBK"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/mvc
+			http://www.springframework.org/schema/mvc/spring-mvc.xsd
+			http://www.springframework.org/schema/context
+	        http://www.springframework.org/schema/context/spring-context-2.5.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--扫描控制层-->
+    <context:component-scan base-package="com.fh.shop.admin.controller"/>
+    <!--扫描异常类-->
+    <context:component-scan base-package="com.fh.shop.admin.exception"/>
+
+    <!--内部视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/view/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    <!--图片-->
+    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+        <property value="104857600" name="maxUploadSize"/>
+        <property value="4096" name="maxInMemorySize"/>
+        <property value="UTF-8" name="defaultEncoding"/>
+    </bean>
+
+
+    <mvc:annotation-driven >
+        <!-- 消息转换器,解决responseBody返回中外乱码问题 -->
+        <mvc:message-converters register-defaults="true">
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="defaultCharset" value="UTF-8"/>
+                <property name="writeAcceptCharset" value="false"/>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+
+    <mvc:interceptors>
+        <!--用户-->
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/user/login.jhtml"></mvc:exclude-mapping>
+            <mvc:exclude-mapping path="/index/forgetPassword.jhtml"></mvc:exclude-mapping>
+            <mvc:exclude-mapping path="/user/forGetPassword.jhtml"></mvc:exclude-mapping>
+            <bean class="com.fh.shop.admin.interceptor.MyInterceptorClass"></bean>
+        </mvc:interceptor>
+        <!--菜单模块的拦截器-->
+        <mvc:interceptor>
+            <mvc:mapping path="/**"></mvc:mapping>
+            <mvc:exclude-mapping path="/user/login.jhtml"></mvc:exclude-mapping>
+            <mvc:exclude-mapping path="/index/forgetPassword.jhtml"></mvc:exclude-mapping>
+            <mvc:exclude-mapping path="/user/forGetPassword.jhtml"></mvc:exclude-mapping>
+            <bean class="com.fh.shop.admin.interceptor.MyInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!--日志切面类-->
+    <bean id="isAspect" class="com.fh.shop.admin.aspect.AopAspect" ></bean>
+    <aop:config>
+        <!--切面-->
+        <aop:aspect ref="isAspect">
+            <!--切点-->
+            <aop:pointcut id="logpointcut" expression="execution(* com.fh.shop.admin.controller ..*.add*(..)) || execution(* com.fh.shop.admin.controller ..*.del*(..)) || execution(* com.fh.shop.admin.controller ..*.update*(..)) || execution(* com.fh.shop.admin.controller ..*.reset*(..)) "></aop:pointcut>
+            <!--通知  环绕通知-->
+            <aop:around method="logAspect" pointcut-ref="logpointcut"></aop:around>
+        </aop:aspect>
+    </aop:config>
+</beans>
